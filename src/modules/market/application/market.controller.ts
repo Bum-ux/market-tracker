@@ -3,16 +3,7 @@ import { MarketService } from "./market.service";
 
 @Controller('market')
 export class MarketController{
-    constructor(private readonly marketService: MarketService){}
-    @Get('rss')
-    async getRssData(@Query('url') url: string){
-        if (!url){
-            throw new BadRequestException('Cần truyền url!')
-        }
-        const data = await this.marketService.fetchRssNews(url)
-        return {success: true, count: data.length, data: data}
-    }
-    
+    constructor(private readonly marketService: MarketService){}    
     @Get('cryptoData')
     async getCryptoAPI(){
         const cryptoData = await this.marketService.fetchCryptoData()
