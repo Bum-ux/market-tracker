@@ -35,21 +35,21 @@ export class AuthService{
     }
 
     async login(dto: LoginDto){
-        const userEmali = await this.prismaService.user.findUnique({
+        const userEmail = await this.prismaService.user.findUnique({
             where: {email:dto.email}
         })
-        if (!userEmali){
+        if (!userEmail){
             throw new UnauthorizedException('Email không tồn tại!')
         }
 
-        const isMatch = await bcrypt.compare(dto.password, userEmali.password)
+        const isMatch = await bcrypt.compare(dto.password, userEmail.password)
         if (!isMatch) {
             throw new UnauthorizedException('Sai mật khẩu!')
         }
 
         const token = this.jwtService.sign({
-            sub: userEmali.id,
-            email: userEmali.email
+            sub: userEmail.id,
+            email: userEmail.email
         })
         return {access_token: token}
     }
