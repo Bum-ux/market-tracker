@@ -8,7 +8,6 @@ import { AuthModule } from './modules/auth/auth.module';
 import { NewsModule } from './modules/news/news.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtGuard } from './common/guards/jwt.guard';
-// import { JwtService } from '@nestjs/jwt';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
 @Module({
@@ -21,7 +20,6 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
   ],
   controllers: [AppController],
   providers: [AppService, 
-    // JwtService,
     {provide: APP_GUARD,
       useClass: JwtGuard,
     },
