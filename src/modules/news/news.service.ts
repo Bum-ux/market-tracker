@@ -1,6 +1,8 @@
-import { PrismaService } from 'src/prisma.service';
+import { RedisService } from './../infrastructure/redis/redis.service';
+import { PrismaService } from 'src/modules/infrastructure/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import Parser from 'rss-parser';
+import { log } from 'console';
 
 @Injectable() // Khởi tạo injectable để có thể sử dụng Dependency Injection
 export class NewsService {
@@ -8,7 +10,7 @@ export class NewsService {
 
   constructor(
     private readonly prismaService: PrismaService, // Inject PrismaService vào NewsService
-    // private readonly parser = new Parser(),
+    private readonly redisService: RedisService,
   ) {}
   private parser = new Parser(); // Khởi tạo parser là một Parser mới để đọc và phân tích dữ liệu
   async fetchNews(url: string) {
@@ -34,6 +36,7 @@ export class NewsService {
         });
       }
 
+      await this.redisService.del('news:list');
       return newFeed.items.map((item) => ({
         // Trả kết quả newFeed và dẫn item bằng map đến item và gán dữ liệu là data trong database
         title: item.title,
@@ -49,5 +52,23 @@ export class NewsService {
       }
       throw new Error('Lỗi không xác định'); // Ném ra một Error mới cùng với thông tin chung nếu như không xác định lỗi chính xác
     }
+  }
+
+  async getAllNews() {
+    const cached = await this.redisService.get('news:list');
+
+    if (cached) {
+      console.log(cached);
+      return JSON.parse(cached);
+    }
+
+    console.log('CACHE MISS - Query từ Database');
+    const allNews = await this.prismaService.news.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    await this.redisService.set('news:list', JSON.stringify(allNews), 300);
+
+    return allNews;
   }
 }

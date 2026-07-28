@@ -3,18 +3,23 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from 'src/modules/infrastructure/prisma/prisma.service';
 
 @Injectable()
 export class BookmarkService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getNewsBookMarks(userId: number) {
-    return this.prismaService.newsBookmark.findMany({
+    const result = await this.prismaService.newsBookmark.findMany({
       where: { userId },
       include: { news: true },
       orderBy: { createdAt: 'desc' },
     });
+
+    if (result.length === 0)
+      return { message: 'Operation successfully. No bookmarks', data: [] };
+
+    return result;
   }
 
   async addNewsBookMark(userId: number, newsId: number) {

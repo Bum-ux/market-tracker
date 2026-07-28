@@ -5,12 +5,17 @@ services:
       POSTGRES_USER: market_user
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: market_tracker
-    
+
     ports:
-      - "5433:5432"
-    
+      - '5433:5432'
+
     volumes:
       - db_data:/var/lib/postgresql
+
+  redis:
+    image: redis:latest
+    ports:
+      - '6379:6379'
 
 volumes:
   db_data:

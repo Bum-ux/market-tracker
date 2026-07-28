@@ -3,7 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { PrismaModule } from 'src/prisma.module';
+import { PrismaModule } from 'src/modules/infrastructure/prisma/prisma.module';
 
 @Module({
   // Đánh dấu class Module để NestJS biết đây là vị trí quản lý và liên kết các thành phần với nhau

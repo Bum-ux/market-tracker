@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from 'src/modules/infrastructure/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
 import { ConflictException } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { UnauthorizedException } from '@nestjs/common';
+import { log } from 'node:console';
 
 @Injectable() // Khởi tạo injectable để có thể sử dụng dependency injection
 export class AuthService {
@@ -17,10 +18,12 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     // Hàm bất đồng bộ xử lý phiên đăng ký và đưa dữ liệu đăng ký vào RegisterDto
+
     const emailExisted = await this.prismaService.user.findUnique({
       // Tìm user theo email trong database và gán vào biến emailExisted
       where: { email: dto.email }, // Nơi tìm dữ liệu email
     });
+
     if (emailExisted) {
       // Kiểm tra email đã có trong database chưa
       throw new ConflictException('Email đã tồn tại!'); // Nếu email đã tồn tại thì ném một thông bão lỗi với thông tin chi tiết
@@ -39,48 +42,53 @@ export class AuthService {
     return result; // Trả dữ liệu của user về
   }
 
-  private async generateTokens(userId: number, email: string) {
+  private async generateTokens(userId: number, email: string, role: string) {
+    // Khái báo hàm bất đồng bộ generate token lấy dữ liệu là id và email của user
     const access_token = this.jwtService.sign(
-      { sub: userId, email },
-      { expiresIn: '15m' },
+      // Đặt token đã được generate cho user vào biến access_token
+      { sub: userId, email, role }, // Đặt token đẫ được generate cho đối tượng theo Id của user và email
+      { expiresIn: '10s' }, // Token hết hạn trong 15 phút
     );
 
     const refreshToken = this.jwtService.sign(
-      { sub: userId, email },
-      { expiresIn: '7d' },
+      // Đặt token đã được làm mới cho user vào biến refreshToken
+      { sub: userId, email, role }, // Đặt token đã được làm mới cho đối tượng theo Id của user và email
+      { expiresIn: '7d' }, // Token làm mới sẽ hết hạn trong 7 ngày
     );
-    return { access_token, refreshToken };
+    return { access_token, refreshToken }; // Trả về dữ liệu danh sách access_token và refreshToken
   }
 
   async login(dto: LoginDto) {
     // Hàm bất đồng bộ xử lý phiên đăng nhập và đưa dữ liệu đăng nhập vào LoginDto
-    const userEmail = await this.prismaService.user.findUnique({
-      // Tìm và kiểm tra email có bị trùng trong database không và gán vào biến userEmail
+    const user = await this.prismaService.user.findUnique({
+      // Tìm và kiểm tra email có bị trùng trong database không và gán vào biến user
       where: { email: dto.email }, // Nơi tìm dữ liệu email
     });
-    if (!userEmail) {
-      // Kiểm tra userEmail có trong database chưa
+    if (!user) {
+      // Kiểm tra user có trong database chưa
       throw new UnauthorizedException('Email không tồn tại!'); // Nếu email chưa tồn tại thì ném ra lỗi không thể xác minh cùng với thông tin chi tiết
     }
 
-    const isMatch = await bcrypt.compare(dto.password, userEmail.password); // Lấy dữ liệu mật khẩu và mật khẩu của user đã được mã hóa để so sánh và gán vào biến isMatch
+    const isMatch = await bcrypt.compare(dto.password, user.password); // Lấy dữ liệu mật khẩu và mật khẩu của user đã được mã hóa để so sánh và gán vào biến isMatch
     if (!isMatch) {
       // Kiểm tra mật khẩu có khớp không
       throw new UnauthorizedException('Sai mật khẩu!'); // Nếu mật khẩu không khớp thì ném lỗi không thể xác minh cùng với thông tin chi tiết
     }
 
     const { access_token, refreshToken } = await this.generateTokens(
-      userEmail.id,
-      userEmail.email,
+      // Lấy danh sách access token và refresh token để generateTokens
+      user.id, // Lấy theo id của user
+      user.email, // Lấy theo email của user
+      user.role, // Lấy theo role của user
     );
 
-    const harshedRefreshToken = await bcrypt.hash(refreshToken, 10);
     await this.prismaService.user.update({
-      where: { id: userEmail.id },
-      data: { refreshToken: harshedRefreshToken },
+      // Gọi primaService để update dữ liệu vào database user
+      where: { id: user.id }, // Xác định vị trí update và update id theo id của user
+      data: { refreshToken: refreshToken }, // Update refreshToken đã được mã hóa vào data
     });
 
-    return { access_token, refreshToken };
+    return { access_token, refreshToken }; // Trả kết quả dữ liệu danh sách access_token và refreshToken
   }
 
   async refreshTokens(userId: number, refreshToken: string) {
@@ -92,15 +100,15 @@ export class AuthService {
     }
 
     const isMatch = await bcrypt.compare(refreshToken, user.refreshToken);
+
     if (!isMatch) {
       throw new UnauthorizedException('Refresh token không hợp lệ!');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email);
-    const harshedRefreshToken = await bcrypt.hash(tokens.refreshToken, 10);
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.prismaService.user.update({
       where: { id: user.id },
-      data: { refreshToken: harshedRefreshToken },
+      data: { refreshToken: tokens.refreshToken },
     });
 
     return tokens;
