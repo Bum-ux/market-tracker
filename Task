@@ -1,0 +1,38 @@
+Trang web hiện thị mọi thông tin của thị trường:
+Tìm hiểu RSS (Done)
+Kéo thông tin về bằng API (Done)
+Hiện thị thông tin và xử lý database bằng NestJS (Done)
+Tìm hiểu JWT và usecase (Done)
+Lưu trữ data rss vào database (Done)
+Hoàn thiện nốt module auth: Tính năng logout (Done)
+Refresh token và tìm hiểu cookie (Done)
+Tìm hiểu Docker: cách dùng và docker compose (Done)
+Tìm hiểu thêm về redis (Done)
+Tìm hiểu tính năng bookmark (Done)
+List tất cả các user và hiện những bookmark news(Admin) (Done)
+Bỏ route handler của service fetchnews (Done)
+Kéo thêm nguồn phân loại theo category (Done)
+Tìm hiểu cron (Done)
+Bắt đầu tích hợp middleware vào (Done)
+Hỏi thêm claude token rotation, flow làm việc (Done)
+Chuẩn hóa lại response-request (Done)TÌm hiểu authen và authorization. (Done)
+
+Chuẩn hóa response trả về của hệ thống bao gồm cả response thông thường và exception response (Done, same as above)
+
+
+Code đến hạ tầng nên phân biệt storage và in-memory. TÌm hiểu authen và authorization.
+Sau khi hoàn thiện luồng auth, update lại bookmark chỉ có role là user
+Tìm hiểu cách triển khai redis trên local và trên container
+Tìm hiểu caching với server
+
+Kéo thêm nguồn ngoài rss (Kéo video livestreama, xử lý video) (Have got more rss source but rss category)
+
+Cá nhân hóa nguồn tin của người
+Làm giao diện (Tìm hiểu kỹ về component)
+Nghiên cứu hiển thị biểu đồ theo thời gian
+Nghiên cứu event driven architecture
+Tìm hiểu sliding window refresh mechanism
+Backend: Kéo API và học cách tối ưu
+Frontend bắt buộc dùng React
+Những trang thiết kế animation có thể tham khảo: Radix UI, shadcn, threejs, framer motion, gsap.
+Chặn IP
