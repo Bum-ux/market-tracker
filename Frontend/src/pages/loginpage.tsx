@@ -20,8 +20,9 @@ function LoginPage() {
 
     try {
       const response = await api.post("/auth/login", { email, password });
-      setToken(response.data.access_token);
-      localStorage.setItem("accessToken", response.data.access_token);
+      const accessToken = response.data.data.access_token;
+      setToken(accessToken);
+      localStorage.setItem("accessToken", accessToken);
       navigate("/");
     } catch (error) {
       console.error("Login failed:", error);

@@ -110,7 +110,7 @@ function NavBar({ brandName, imageSrcPath }: NavBarProps) {
               {token ? (
                 <button
                   onClick={handleLogout}
-                  className="btn btn-link nav-link border-0 p-0"
+                  className="btn btn-link nav-link border-0"
                 >
                   Logout
                 </button>
