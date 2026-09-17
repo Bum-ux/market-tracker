@@ -82,3 +82,36 @@ model Category {
   name      String    @unique
   news      News[]
 }
+
+enum VideoState {
+  VIDEO
+  UPCOMING
+  LIVE
+  ENDED
+  UNAVAILABLE
+}
+
+model Video {
+  id               Int        @id @default(autoincrement())
+  externalId       String     @unique
+  provider         String     @default("youtube")
+  channelId        String
+  channelTitle     String
+  title            String
+  description      String
+  watchUrl         String
+  embedUrl         String?
+  thumbnailUrl     String?
+  publishedAt      DateTime
+  durationSeconds  Int?
+  state            VideoState @default(VIDEO)
+  scheduledStartAt DateTime?
+  actualStartAt    DateTime?
+  actualEndAt      DateTime?
+  syncedAt         DateTime   @default(now())
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([state, publishedAt])
+  @@index([channelId])
+}

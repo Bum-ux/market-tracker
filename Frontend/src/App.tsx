@@ -1,11 +1,10 @@
 import AuthProvider from "./context/auth_context";
-import HomePage from "./pages/homepage";
 import NewsPage from "./pages/newspage";
 import MarketPage from "./pages/marketpage";
 import LoginPage from "./pages/loginpage";
 import NavBar from "./components/navbar";
 import "bootstrap/dist/css/bootstrap.css";
-import imagePath from "/home/bum/Documents/SSIT/market-tracker/Frontend/src/assets/world.jpeg";
+import imagePath from "./assets/world.jpeg";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {

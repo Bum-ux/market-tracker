@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
+import VideoList from "../components/video_list";
 
 interface NewsItem {
   id: number;
@@ -30,6 +31,7 @@ function NewsPage() {
           <p>{item.contentSnippet}</p>
         </div>
       ))}
+      <VideoList />
     </div>
   );
 }

@@ -15,6 +15,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
+import { VideoModule } from './modules/video/video.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     PrismaModule,
     AuthModule,
     NewsModule,
+    VideoModule,
     BookmarkModule,
     AdminModule,
     ScheduleModule.forRoot(),
