@@ -16,9 +16,11 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { VideoModule } from './modules/video/video.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     ThrottlerModule.forRoot({
       throttlers: [
         {

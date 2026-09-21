@@ -29,6 +29,20 @@ không phải backfill toàn bộ kênh hoặc cơ chế phát hiện mọi live
 không xuất hiện trong uploads playlist sẽ không được khám phá. Trạng thái có
 thể chậm khoảng một chu kỳ đồng bộ cộng thời gian cache.
 
+## Sự kiện nội bộ
+
+Sau khi batch lưu database thành công, service so sánh trạng thái trước và sau:
+
+- `video.went_live` khi video mới hoặc video trước đó không LIVE chuyển thành LIVE.
+- `video.ended` khi video trước đó LIVE/UPCOMING chuyển thành ENDED.
+
+`VideoEventsListener` hiện ghi log cho hai event. Event không phát lại khi cron
+chạy mà trạng thái không đổi, và không phát nếu transaction thất bại. Đây là
+event trong bộ nhớ process, không được lưu bền hoặc retry sau khi ứng dụng dừng.
+Nếu cần bảo đảm gửi thông báo hoặc chạy tác vụ dài, bổ sung outbox/queue thay vì
+dựa vào event này. Với nhiều replica cùng đồng bộ, cần một worker hoặc cơ chế
+khóa để tránh phát trùng.
+
 Video đã lưu nhưng không còn được API trả về trong batch kiểm tra sẽ được đánh
 dấu UNAVAILABLE, tắt embed và ẩn khỏi danh sách mặc định. Video cũ ngoài trang
 uploads và không có trạng thái hoạt động chưa được kiểm tra lại. Một lỗi kênh

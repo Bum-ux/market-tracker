@@ -6,10 +6,12 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { VideoState } from '../../../generated/prisma/enums';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { RedisService } from '../infrastructure/redis/redis.service';
 import { YouTubeProvider } from './youtube.provider';
+import { VIDEO_ENDED, VIDEO_WENT_LIVE, VideoStateEvent } from './video.events';
 
 @Injectable()
 export class VideoService implements OnApplicationBootstrap {
@@ -21,6 +23,7 @@ export class VideoService implements OnApplicationBootstrap {
     private readonly redis: RedisService,
     private readonly youtube: YouTubeProvider,
     private readonly config: ConfigService,
+    private readonly events: EventEmitter2,
   ) {}
 
   onApplicationBootstrap() {
@@ -64,6 +67,13 @@ export class VideoService implements OnApplicationBootstrap {
           for (let offset = 0; offset < ids.length; offset += 50) {
             const batch = ids.slice(offset, offset + 50);
             const videos = await this.youtube.videos(batch);
+            const previous = await this.prisma.video.findMany({
+              where: { externalId: { in: batch } },
+              select: { externalId: true, state: true },
+            });
+            const previousStates = new Map(
+              previous.map((video) => [video.externalId, video.state]),
+            );
             await this.prisma.$transaction([
               ...videos.map((video) =>
                 this.prisma.video.upsert({
@@ -87,6 +97,29 @@ export class VideoService implements OnApplicationBootstrap {
                 },
               }),
             ]);
+            // Publish only after the batch commits. Repeated cron runs should not
+            // announce the same state again.
+            for (const video of videos) {
+              const oldState = previousStates.get(video.externalId);
+              const event: VideoStateEvent = {
+                externalId: video.externalId,
+                channelId: video.channelId,
+                title: video.title,
+                occurredAt: new Date(),
+              };
+              if (
+                video.state === VideoState.LIVE &&
+                oldState !== VideoState.LIVE
+              ) {
+                this.events.emit(VIDEO_WENT_LIVE, event);
+              } else if (
+                video.state === VideoState.ENDED &&
+                (oldState === VideoState.LIVE ||
+                  oldState === VideoState.UPCOMING)
+              ) {
+                this.events.emit(VIDEO_ENDED, event);
+              }
+            }
           }
           this.logger.log(`Đã đồng bộ ${ids.length} video của ${channelId}`);
         } catch {

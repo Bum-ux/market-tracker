@@ -25,12 +25,12 @@ Sau khi hoàn thiện luồng auth, update lại bookmark chỉ có role là use
 Tìm hiểu cách triển khai redis trên local và trên container
 Tìm hiểu caching với server
 
-Kéo thêm nguồn ngoài rss (Kéo video livestreama, xử lý video) (Have got more rss source but rss category)
+Kéo thêm nguồn ngoài rss (Kéo video livestreama, xử lý video) (Have got more rss source but rss category) (Done)
 
 Cá nhân hóa nguồn tin của người
 Làm giao diện (Tìm hiểu kỹ về component)
 Nghiên cứu hiển thị biểu đồ theo thời gian
-Nghiên cứu event driven architecture
+Nghiên cứu event driven architecture (done)
 Tìm hiểu sliding window refresh mechanism
 Backend: Kéo API và học cách tối ưu
 Frontend bắt buộc dùng React
