@@ -3,7 +3,6 @@
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
-
 generator client {
   provider     = "prisma-client"
   output       = "../generated/prisma"
@@ -18,13 +17,14 @@ model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
   password     String
-  role         String       @default("user")
+  role         String   @default("user")
   refreshToken String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   newsBookmarks   NewsBookmark[]
   marketBookmarks MarketBookmark[]
+  videoBookmarks  VideoBookmark[]
 }
 
 model News {
@@ -35,8 +35,8 @@ model News {
   contentSnippet String
   createdAt      DateTime @default(now())
 
-  categoryId      Int?
-  category        Category?   @relation(fields: [categoryId], references: [id])
+  categoryId    Int?
+  category      Category?      @relation(fields: [categoryId], references: [id])
   newsBookmarks NewsBookmark[]
 }
 
@@ -67,6 +67,19 @@ model MarketBookmark {
   @@unique([userId, marketId])
 }
 
+model VideoBookmark {
+  id      Int @id @default(autoincrement())
+  userId  Int
+  videoId Int
+
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  video Video @relation(fields: [videoId], references: [id])
+
+  @@unique([userId, videoId])
+}
+
 model Market {
   id        Int      @id @default(autoincrement())
   coinId    String   @unique
@@ -78,9 +91,9 @@ model Market {
 }
 
 model Category {
-  id        Int      @id @default(autoincrement())
-  name      String    @unique
-  news      News[]
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  news News[]
 }
 
 enum VideoState {
@@ -111,6 +124,8 @@ model Video {
   syncedAt         DateTime   @default(now())
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
+
+  videoBookmarks VideoBookmark[]
 
   @@index([state, publishedAt])
   @@index([channelId])

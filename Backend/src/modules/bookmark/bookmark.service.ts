@@ -9,6 +9,9 @@ import { PrismaService } from 'src/modules/infrastructure/prisma/prisma.service'
 export class BookmarkService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  //*************************
+  // #region News Bookmark
+  //*************************
   async getNewsBookMarks(userId: number) {
     const result = await this.prismaService.newsBookmark.findMany({
       where: { userId },
@@ -67,5 +70,21 @@ export class BookmarkService {
     });
 
     return { message: 'Xóa bookmark thành công!' };
+  }
+
+  //*************************
+  // #region Video Bookmark
+  //*************************
+  async getVideosBookMarks(userId: number) {
+    const result = await this.prismaService.newsBookmark.findMany({
+      where: { userId },
+      include: { news: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (result.length === 0)
+      return { message: 'Operation successfully. No bookmarks', data: [] };
+
+    return result;
   }
 }
