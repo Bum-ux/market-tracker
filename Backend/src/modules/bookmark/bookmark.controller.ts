@@ -1,4 +1,3 @@
-import { Result } from '../../../generated/prisma/internal/prismaNamespace';
 import {
   Controller,
   Delete,
@@ -15,6 +14,9 @@ export class BookmarkController {
   // export class BookmarkController để các module khác có thể import và sử dụng
   constructor(private readonly bookmarkService: BookmarkService) {} // Inject BookmarkService để xử lý logic
 
+  //*************************
+  // #region News Bookmark
+  //*************************
   @Get('news') // Gửi request HTTP theo route news
   async getNewsBookMarks(@Req() req: any) {
     // Hàm bất đồng bộ nhận request hiện tại và không kiểm tra kiểu
@@ -48,5 +50,67 @@ export class BookmarkController {
       newsId, // Lấy dữ liệu newsId
     );
     return { success: true, ...result }; // Trả kết quả true và result
+  }
+
+  //*************************
+  // #region Video Bookmark
+  //*************************
+  @Get('video')
+  async getVideoBookMarks(@Req() req: any) {
+    const result = await this.bookmarkService.getVideoBookMarks(req.user.sub);
+    return { success: true, data: result };
+  }
+  @Post('video/:videoId')
+  async addVideoBookMark(
+    @Req() req: any,
+    @Param('videoId', ParseIntPipe) videoId: number,
+  ) {
+    const bookmark = await this.bookmarkService.addVideoBookMark(
+      req.user.sub, 
+      videoId, 
+    );
+    return bookmark; 
+  }
+  @Delete('video/:videoId')
+  async deleteVideoBookMark(
+    @Req() req: any,
+    @Param('videoId', ParseIntPipe) videoId: number,
+  ) {
+    const result = await this.bookmarkService.deleteVideoBookMark(
+      req.user.sub,
+      videoId,
+    );
+    return { success: true, ...result };
+  }
+
+  //*************************
+  // #region Market Bookmark
+  //*************************
+  @Get('market')
+  async getMarketBookMarks(@Req() req: any) {
+    const result = await this.bookmarkService.getMarketBookMarks(req.user.sub);
+    return { success: true, data: result };
+  }
+  @Post('market/:videoId')
+  async addMarketBookMark(
+    @Req() req: any,
+    @Param('martketId', ParseIntPipe) martketId: number,
+  ) {
+    const bookmark = await this.bookmarkService.addMarketBookMark(
+      req.user.sub,
+      martketId,
+    );
+    return bookmark;
+  }
+  @Delete('market/:martketId')
+  async deleteMarketBookMark(
+    @Req() req: any,
+    @Param('martketId', ParseIntPipe) martketId: number,
+  ) {
+    const result = await this.bookmarkService.deleteMarketBookMark(
+      req.user.sub,
+      martketId,
+    );
+    return { success: true, ...result };
   }
 }

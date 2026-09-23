@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/modules/infrastructure/prisma/prisma.service';
+import { Prisma } from '../../../generated/prisma/client';
 
 @Injectable()
 export class BookmarkService {
@@ -26,30 +27,22 @@ export class BookmarkService {
   }
 
   async addNewsBookMark(userId: number, newsId: number) {
-    const news = await this.prismaService.news.findUnique({
-      where: { id: newsId },
-    });
-
-    if (!news) {
-      throw new NotFoundException('Không tìm thấy tin tức!');
+    try {
+      return await this.prismaService.newsBookmark.create({
+        data: { userId, newsId },
+        include: { news: true },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException('Tin tức này đã được bookmark!');
+        }
+        if (error.code === 'P2003') {
+          throw new NotFoundException('Không tìm thấy tin tức!');
+        }
+      }
+      throw error;
     }
-
-    const existedBookmark = await (
-      this.prismaService as any
-    ).newsBookmark.findUnique({
-      where: {
-        userId_newsId: { userId, newsId },
-      },
-    });
-
-    if (existedBookmark) {
-      throw new ConflictException('Tin tức này đã được bookmark!');
-    }
-
-    return (this.prismaService as any).newsBookmark.create({
-      data: { userId, newsId },
-      include: { news: true },
-    });
   }
 
   async deleteNewsBookMark(userId: number, newsId: number) {
@@ -75,10 +68,10 @@ export class BookmarkService {
   //*************************
   // #region Video Bookmark
   //*************************
-  async getVideosBookMarks(userId: number) {
-    const result = await this.prismaService.newsBookmark.findMany({
+  async getVideoBookMarks(userId: number) {
+    const result = await this.prismaService.videoBookmark.findMany({
       where: { userId },
-      include: { news: true },
+      include: { video: true },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -86,5 +79,99 @@ export class BookmarkService {
       return { message: 'Operation successfully. No bookmarks', data: [] };
 
     return result;
+  }
+
+  async addVideoBookMark(userId: number, videoId: number){
+    try {
+      return await this.prismaService.videoBookmark.create({
+        data: { userId, videoId },
+        include: { video: true },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException('Video này đã được bookmark!');
+        }
+        if (error.code === 'P2003') {
+          throw new NotFoundException('Không tìm thấy Video!');
+        }
+      }
+      throw error;
+    }
+  }
+
+  async deleteVideoBookMark(userId: number, videoId: number) {
+    const bookmark = await this.prismaService.videoBookmark.findUnique({
+      where: {
+        userId_videoId: { userId, videoId },
+      },
+    });
+
+    if (!bookmark) {
+      throw new NotFoundException('Không tìm thấy bookmark!');
+    }
+
+    await this.prismaService.videoBookmark.delete({
+      where: {
+        userId_videoId: { userId, videoId },
+      },
+    });
+
+    return { message: 'Xóa bookmark thành công!' };
+  }
+
+  //*************************
+  // #region Market Bookmark
+  //*************************
+  async getMarketBookMarks(userId: number) {
+    const result = await this.prismaService.marketBookmark.findMany({
+      where: { userId },
+      include: { market: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (result.length === 0)
+      return { message: 'Operation successfully. No bookmarks', data: [] };
+
+    return result;
+  }
+
+  async addMarketBookMark(userId: number, marketId: number){
+    try {
+      return await this.prismaService.marketBookmark.create({
+        data: { userId, marketId },
+        include: { market: true },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException('Market này đã được bookmark!');
+        }
+        if (error.code === 'P2003') {
+          throw new NotFoundException('Không tìm thấy Market!');
+        }
+      }
+      throw error;
+    }
+  }
+
+  async deleteMarketBookMark(userId: number, marketId: number) {
+    const bookmark = await this.prismaService.marketBookmark.findUnique({
+      where: {
+        userId_marketId: { userId, marketId },
+      },
+    });
+
+    if (!bookmark) {
+      throw new NotFoundException('Không tìm thấy bookmark!');
+    }
+
+    await this.prismaService.marketBookmark.delete({
+      where: {
+        userId_marketId: { userId, marketId },
+      },
+    });
+
+    return { message: 'Xóa bookmark thành công!' };
   }
 }
