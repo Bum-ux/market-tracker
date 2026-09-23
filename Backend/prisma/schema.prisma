@@ -13,6 +13,13 @@ datasource db {
   provider = "postgresql"
 }
 
+enum NotificationType {
+  NEWS_UPDATED
+  MARKET_PRICE_CHANGED
+  VIDEO_WENT_LIVE
+  VIDEO_ENDED
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -25,6 +32,7 @@ model User {
   newsBookmarks   NewsBookmark[]
   marketBookmarks MarketBookmark[]
   videoBookmarks  VideoBookmark[]
+  notifications Notification[]
 }
 
 model News {
@@ -38,6 +46,7 @@ model News {
   categoryId    Int?
   category      Category?      @relation(fields: [categoryId], references: [id])
   newsBookmarks NewsBookmark[]
+  notifications Notification[]
 }
 
 model NewsBookmark {
@@ -88,6 +97,7 @@ model Market {
   createdAt DateTime @default(now())
 
   marketBookmarks MarketBookmark[]
+  notifications Notification[]
 }
 
 model Category {
@@ -126,7 +136,29 @@ model Video {
   updatedAt        DateTime   @updatedAt
 
   videoBookmarks VideoBookmark[]
+  notifications Notification[]
 
   @@index([state, publishedAt])
   @@index([channelId])
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  type      NotificationType
+  title     String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  newsId   Int?
+  marketId Int?
+  videoId  Int?
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  news   News?   @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  market Market? @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  video  Video?  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
