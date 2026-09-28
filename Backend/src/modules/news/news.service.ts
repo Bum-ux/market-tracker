@@ -3,6 +3,9 @@ import { RedisService } from '../infrastructure/redis/redis.service';
 import { Injectable } from '@nestjs/common';
 import Parser from 'rss-parser';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { randomUUID } from 'node:crypto';
+import { NEWS_UPDATED } from '../notification/notification.events';
 
 /**
  * News-related services including fetching, deleting, etc.
@@ -14,6 +17,7 @@ export class NewsService {
   constructor(
     private readonly prismaService: PrismaService, // Inject PrismaService vào NewsService
     private readonly redisService: RedisService,
+    private readonly events: EventEmitter2,
   ) {}
   private parser = new Parser(); // Khởi tạo parser là một Parser mới để đọc và phân tích dữ liệu
 
@@ -57,6 +61,47 @@ export class NewsService {
       console.log(newFeed); // In dũ liệu của biến newFeed
       for (const item of newFeed.items) {
         // khai báo biến item được chạy trong vòng lặp for để duyệt qua những items trong biến newFeed để lưu vào database
+        if (!item.link) continue;
+        const data = {
+          title: item.title ?? 'Không có tiêu đề',
+          pubDate: item.pubDate ?? '',
+          contentSnippet: item.contentSnippet ?? '',
+          categoryId: category.id,
+        };
+        const previous = await this.prismaService.news.findUnique({
+          where: { link: item.link },
+        });
+        if (previous) {
+          const changed =
+            previous.title !== data.title ||
+            previous.pubDate !== data.pubDate ||
+            previous.contentSnippet !== data.contentSnippet;
+          if (changed) {
+            const updated = await this.prismaService.news.updateMany({
+              where: {
+                id: previous.id,
+                title: previous.title,
+                pubDate: previous.pubDate,
+                contentSnippet: previous.contentSnippet,
+              },
+              data,
+            });
+            if (updated.count) {
+              await this.events.emitAsync(NEWS_UPDATED, {
+                eventKey: randomUUID(),
+                newsId: previous.id,
+                title: data.title,
+                occurredAt: new Date(),
+              });
+            }
+          } else if (previous.categoryId !== category.id) {
+            await this.prismaService.news.update({
+              where: { id: previous.id },
+              data: { categoryId: category.id },
+            });
+          }
+          continue;
+        }
         await this.prismaService.news.upsert({
           // Chờ prismaService update hoặc insert những dữ liệu vào database. news là một models trong prismaclient
           where: { link: item.link ?? '' }, // Tìm vị trí để đưa link vào database.

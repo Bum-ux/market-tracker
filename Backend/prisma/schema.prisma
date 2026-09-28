@@ -95,6 +95,7 @@ model Market {
   name      String?
   symbol    String?
   createdAt DateTime @default(now())
+  lastPrice Float?
 
   marketBookmarks MarketBookmark[]
   notifications Notification[]
@@ -150,6 +151,7 @@ model Notification {
   message   String
   readAt    DateTime?
   createdAt DateTime         @default(now())
+  eventKey  String?
 
   newsId   Int?
   marketId Int?
@@ -161,4 +163,5 @@ model Notification {
   video  Video?  @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+  @@unique([userId, eventKey])
 }

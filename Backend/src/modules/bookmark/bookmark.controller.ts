@@ -91,25 +91,25 @@ export class BookmarkController {
     const result = await this.bookmarkService.getMarketBookMarks(req.user.sub);
     return { success: true, data: result };
   }
-  @Post('market/:videoId')
+  @Post('market/:marketId')
   async addMarketBookMark(
     @Req() req: any,
-    @Param('martketId', ParseIntPipe) martketId: number,
+    @Param('marketId', ParseIntPipe) marketId: number,
   ) {
     const bookmark = await this.bookmarkService.addMarketBookMark(
       req.user.sub,
-      martketId,
+      marketId,
     );
     return bookmark;
   }
-  @Delete('market/:martketId')
+  @Delete('market/:marketId')
   async deleteMarketBookMark(
     @Req() req: any,
-    @Param('martketId', ParseIntPipe) martketId: number,
+    @Param('marketId', ParseIntPipe) marketId: number,
   ) {
     const result = await this.bookmarkService.deleteMarketBookMark(
       req.user.sub,
-      martketId,
+      marketId,
     );
     return { success: true, ...result };
   }

@@ -111,13 +111,13 @@ export class VideoService implements OnApplicationBootstrap {
                 video.state === VideoState.LIVE &&
                 oldState !== VideoState.LIVE
               ) {
-                this.events.emit(VIDEO_WENT_LIVE, event);
+                await this.events.emitAsync(VIDEO_WENT_LIVE, event);
               } else if (
                 video.state === VideoState.ENDED &&
                 (oldState === VideoState.LIVE ||
                   oldState === VideoState.UPCOMING)
               ) {
-                this.events.emit(VIDEO_ENDED, event);
+                await this.events.emitAsync(VIDEO_ENDED, event);
               }
             }
           }

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth_context";
 import api from "../services/api";
+import NotificationBell from "./notification_bell";
 
 interface NavBarProps {
   brandName: string;
@@ -14,7 +15,7 @@ function NavBar({ brandName, imageSrcPath }: NavBarProps) {
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
-
+      localStorage.removeItem("accessToken");
       setToken(null);
 
       navigate("/login");
@@ -106,6 +107,7 @@ function NavBar({ brandName, imageSrcPath }: NavBarProps) {
             </li>
 
             {/* Auth */}
+            {token && <li className="nav-item"><NotificationBell key={token} /></li>}
             <li className="nav-item">
               {token ? (
                 <button

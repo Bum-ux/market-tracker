@@ -36,7 +36,9 @@ Sau khi batch lưu database thành công, service so sánh trạng thái trướ
 - `video.went_live` khi video mới hoặc video trước đó không LIVE chuyển thành LIVE.
 - `video.ended` khi video trước đó LIVE/UPCOMING chuyển thành ENDED.
 
-`VideoEventsListener` hiện ghi log cho hai event. Event không phát lại khi cron
+`VideoEventsListener` ghi log và `NotificationListener` lưu thông báo cho user
+đã bookmark video (xem [notifications.md](notifications.md)). Publisher chờ
+listener hoàn thành bằng `emitAsync`. Event không phát lại khi cron
 chạy mà trạng thái không đổi, và không phát nếu transaction thất bại. Đây là
 event trong bộ nhớ process, không được lưu bền hoặc retry sau khi ứng dụng dừng.
 Nếu cần bảo đảm gửi thông báo hoặc chạy tác vụ dài, bổ sung outbox/queue thay vì

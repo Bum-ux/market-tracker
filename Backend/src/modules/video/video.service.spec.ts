@@ -15,7 +15,7 @@ describe('VideoService', () => {
   };
   let redis: { get: jest.Mock; set: jest.Mock; del: jest.Mock };
   let youtube: { latestVideoIds: jest.Mock; videos: jest.Mock };
-  let events: { emit: jest.Mock };
+  let events: { emitAsync: jest.Mock };
 
   beforeEach(() => {
     prisma = {
@@ -35,7 +35,7 @@ describe('VideoService', () => {
       latestVideoIds: jest.fn().mockResolvedValue(['new-video']),
       videos: jest.fn().mockResolvedValue([]),
     };
-    events = { emit: jest.fn() };
+    events = { emitAsync: jest.fn() };
     service = new VideoService(
       prisma as unknown as PrismaService,
       redis as unknown as RedisService,
@@ -99,7 +99,7 @@ describe('VideoService', () => {
   it('publishes went_live once after a successful commit', async () => {
     youtube.videos.mockResolvedValue([liveVideo]);
     await service.syncVideos();
-    expect(events.emit).toHaveBeenCalledWith(
+    expect(events.emitAsync).toHaveBeenCalledWith(
       VIDEO_WENT_LIVE,
       expect.objectContaining({
         externalId: 'new-video',
@@ -107,7 +107,7 @@ describe('VideoService', () => {
       }) as unknown,
     );
 
-    events.emit.mockClear();
+    events.emitAsync.mockClear();
     prisma.video.findMany.mockImplementation(
       ({ select }: { select: Record<string, boolean> }) =>
         Promise.resolve(
@@ -115,7 +115,7 @@ describe('VideoService', () => {
         ),
     );
     await service.syncVideos();
-    expect(events.emit).not.toHaveBeenCalled();
+    expect(events.emitAsync).not.toHaveBeenCalled();
   });
 
   it('publishes ended only when an active stream finishes', async () => {
@@ -127,11 +127,11 @@ describe('VideoService', () => {
         ),
     );
     await service.syncVideos();
-    expect(events.emit).toHaveBeenCalledWith(
+    expect(events.emitAsync).toHaveBeenCalledWith(
       VIDEO_ENDED,
       expect.objectContaining({ externalId: 'new-video' }) as unknown,
     );
-    expect(events.emit).not.toHaveBeenCalledWith(
+    expect(events.emitAsync).not.toHaveBeenCalledWith(
       VIDEO_WENT_LIVE,
       expect.anything(),
     );
@@ -141,6 +141,6 @@ describe('VideoService', () => {
     youtube.videos.mockResolvedValue([liveVideo]);
     prisma.$transaction.mockRejectedValue(new Error('database unavailable'));
     await service.syncVideos();
-    expect(events.emit).not.toHaveBeenCalled();
+    expect(events.emitAsync).not.toHaveBeenCalled();
   });
 });
